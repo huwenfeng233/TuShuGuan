@@ -71,7 +71,9 @@ class RegistryWidget(QWidget):
 
 
         pass
+    def setData(self,data:dict):
 
+        pass
 if __name__ == '__main__':
     app=QApplication(sys.argv)
     main=RegistryWidget()

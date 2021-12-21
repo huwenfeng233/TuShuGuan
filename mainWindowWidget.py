@@ -27,6 +27,7 @@ class MainWindowWidget(QMainWindow):
     Header = [['账号', '昵称', '性别', '职称', '当前可借数量', '已借数量', '工作部门', '电话'],
               ['ISBN', '书名', '出版社', '作者', '馆藏数量', '目前数量', '是否可借'],
               ['借书证号', '图书编号', '借书日期', '间隔', '还书日期', '罚金']]
+    sendData=pyqtSignal(dict)
 
     def __init__(self):
         super(MainWindowWidget, self).__init__()
@@ -127,6 +128,8 @@ class MainWindowWidget(QMainWindow):
         self.queryReaderBtn.clicked.connect(self.queryReaderFun)
         self.newReaderBtn.clicked.connect(self.on_newReaderClick)
         self.delReaderBtn.clicked.connect(self.on_delReaderClick)
+        self.alterReaderBtn.clicked.connect(self.on_alterReaderClick)
+
     # 初始化第二个标签页
     def initSecondTab(self):
         layout2 = QVBoxLayout()
@@ -254,8 +257,8 @@ class MainWindowWidget(QMainWindow):
                            0 if len(self.readerData['rBorrowedNum']) == 0 else self.readerData['rBorrowedNum'],
                            self.readerData['dept'], self.readerData['phone'], self.readerData['account'])
             # print(sql)
-            "and account like '%{8}%'"
-            sql2 = """SELECT * FROM readers WHERE  RNAME LIKE '%{}%' and phone like '%{}%'  """.format('胡', '17')
+
+
             con = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
             cu = con.cursor()
 
@@ -399,7 +402,7 @@ class MainWindowWidget(QMainWindow):
                 print(i,self.queryResultTable.item(curRow, i).text())
             # print(self.readerData)
             sql="""
-                DELETE FROM readers where borrowid={}
+                DELETE FROM readers where borrowid='{}'
                 """.format(self.readerData['borrowid'])
             con=pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
             cur=con.cursor()
@@ -417,7 +420,30 @@ class MainWindowWidget(QMainWindow):
 
     # 修改读者信息函数
     def on_alterReaderClick(self):
+        row = self.queryResultTable.currentRow()
+        if row>=0:
+            try:
+
+                # print(row)
+                self.readerData["borrowid"] =self.queryResultTable.item(row,0).text()
+                self.readerData['rname'] = self.queryResultTable.item(row,1).text()
+                self.readerData['sex'] = self.queryResultTable.item(row,2).text()
+                self.readerData['job'] = self.queryResultTable.item(row,3).text()
+                self.readerData['rCurNum'] = self.queryResultTable.item(row,4).text()
+                self.readerData['rBorrowedNum'] = self.queryResultTable.item(row,5).text()
+                self.readerData['dept'] = self.queryResultTable.item(row,6).text()
+                self.readerData['phone'] = self.queryResultTable.item(row,7).text()
+                print(self.readerData)
+            # self.readerData['account'] = self.queryResultTable.item(row,0).text()
+            except Exception as e:
+                print(e)
+            self.newReaderWidget=readerEditWidget.ReaderEditWidget(self.readerData,False)
+            self.newReaderWidget.show()
+            # print(self.newReaderWidget)
+        else:
+            QMessageBox.critical(self,'错误','请先查询或者新建用户！',QMessageBox.Ok)
         pass
+
 
 
 if __name__ == '__main__':
