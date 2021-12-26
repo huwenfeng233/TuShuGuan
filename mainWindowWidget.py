@@ -299,8 +299,7 @@ class MainWindowWidget(QMainWindow):
             con.close()
             pass
         # pass
-
-    def queryBooksFun(self, book: map):
+    def setBookData(self):
         self.queryBookResultTableWidget.clear()
         self.queryBookResultTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.queryBookResultTableWidget.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -311,6 +310,8 @@ class MainWindowWidget(QMainWindow):
         self.bookData['storeNum'] = self.saveNumEdit.text()
         self.bookData['bCurNum'] = self.curNumEdit.text()
         self.bookData['available'] = self.isBorrowAbleComBox.currentText()
+    def queryBooksFun(self, book: map):
+        self.setBookData()
         print(self.bookData)
 
         # print(self.bookData)
@@ -389,7 +390,9 @@ class MainWindowWidget(QMainWindow):
     # 新增读者函数
     def on_newReaderClick(self):
         self.newReaderWidget = readerEditWidget.ReaderEditWidget()
+        self.newReaderWidget.readerDataSignal.connect(self.queryReaderFun)
         self.newReaderWidget.show()
+
         pass
 
     # 删除读者函数
@@ -423,7 +426,7 @@ class MainWindowWidget(QMainWindow):
         row = self.queryResultTable.currentRow()
         if row>=0:
             try:
-
+                # self.setBookData()
                 # print(row)
                 self.readerData["borrowid"] =self.queryResultTable.item(row,0).text()
                 self.readerData['rname'] = self.queryResultTable.item(row,1).text()
@@ -438,14 +441,15 @@ class MainWindowWidget(QMainWindow):
             except Exception as e:
                 print(e)
             self.newReaderWidget=readerEditWidget.ReaderEditWidget(self.readerData,False)
+            self.newReaderWidget.readerDataSignal.connect(self.queryReaderFun)
             self.newReaderWidget.show()
-            self.queryReaderFun()
-            self.newReaderWidget.readerDataSignal.connect(self.queryReaderFun({}))
-            # print(self.newReaderWidget)
+            # self.queryReaderFun()
+
         else:
             QMessageBox.critical(self,'错误','请先查询或者新建用户！',QMessageBox.Ok)
         pass
 
+    def newBookFun(self):
 
 
 if __name__ == '__main__':

@@ -13,11 +13,11 @@ class ReaderEditWidget(QWidget):
     readerHeader = ["borrowid", 'rname', 'sex', 'job', 'rCurNum', 'rBorrowedNum', 'dept', 'phone']
 
     def __init__(self, data={}, flag=True):
-
+        # 如果flag为true则是新建，否则是修改
         super(ReaderEditWidget, self).__init__()
         self.initUI()
         self.flag = flag
-
+        self.setWindowModality(Qt.WindowModal)
         if len(data.items()) > 2:
             print("更新data")
             try:
@@ -107,11 +107,10 @@ class ReaderEditWidget(QWidget):
                                       database="tsglxt")
                 cur = con.cursor()
                 l = cur.execute(sql)
-
+                # 如果用户已经存在，则发出提示
                 if l > 0 and self.flag:
                     QMessageBox.critical(self, '错误', '用户已经存在！', QMessageBox.Ok)
                 else:
-
                     self.updateReader(self.flag)
 
             except Exception as e:
@@ -133,12 +132,22 @@ class ReaderEditWidget(QWidget):
         self.readerData[self.readerHeader[6]] = self.deptEdit.text()
         self.readerData[self.readerHeader[7]] = self.phoneEdit.text()
         try:
-            sql = """
+            if not flag:
+                print("新增读者")
+                sql = """
                 UPDATE readers set borrowid='{0}' ,rname='{1}',sex='{2}',job='{3}',rCurNum={4},
                 rBorrowedNum={5},dept='{6}',phone='{7}'
                 """.format(self.readerData['borrowid'], self.readerData['rname'], self.readerData['sex'],
                            self.readerData['job'], self.readerData['rCurNum'], self.readerData['rBorrowedNum'],
                            self.readerData['dept'], self.readerData['phone'])
+            else:
+                sql = """
+                    INSERT INTO readers(borrowid,rname,sex,job,rCurNum,
+                rBorrowedNum,dept,phone)  values ('{0}' ,'{1}','{2}','{3}',{4},
+                {5},'{6}','{7}')
+                    """.format(self.readerData['borrowid'], self.readerData['rname'], self.readerData['sex'],
+                               self.readerData['job'], self.readerData['rCurNum'], self.readerData['rBorrowedNum'],
+                               self.readerData['dept'], self.readerData['phone'])
             print(sql)
             con = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
                                   database="tsglxt")
@@ -146,11 +155,12 @@ class ReaderEditWidget(QWidget):
             l = cur.execute(sql)
             con.commit()
             choice = QMessageBox.information(self, '成功', '更新成功!', QMessageBox.Ok)
-            if choice==QMessageBox.Ok:
-
+            if choice == QMessageBox.Ok:
+                print(self.readerData)
+                self.readerDataSignal.emit(self.readerData)
                 pass
             self.close()
-
+            # return
 
         except Exception as e:
             print(e)
