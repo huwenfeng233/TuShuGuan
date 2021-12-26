@@ -8,8 +8,9 @@ from PyQt5.QtGui import *
 
 class ReaderEditWidget(QWidget):
     readerDataSignal = pyqtSignal(dict)
+
     readerData = {}
-    readerHeader = ["borrowid", 'rname', 'sex', 'job', 'rCurNum', 'rBorrowedNum', 'dept', 'phone' ]
+    readerHeader = ["borrowid", 'rname', 'sex', 'job', 'rCurNum', 'rBorrowedNum', 'dept', 'phone']
 
     def __init__(self, data={}, flag=True):
 
@@ -28,7 +29,7 @@ class ReaderEditWidget(QWidget):
                 self.curNumEdit.setText(data['rCurNum'])
                 self.borrowedNumEdit.setText(data['rBorrowedNum'])
                 self.readerNameEdit.setText(data['rname'])
-                self.readerData=data
+                self.readerData = data
             except Exception as e:
                 print(e)
         self.confirmBtn.clicked.connect(self.on_confirm_Btn)
@@ -123,14 +124,14 @@ class ReaderEditWidget(QWidget):
     def updateReader(self, flag=bool):
         # bool=1插入 bool=0为更新
         print(self.readerData)
-        self.readerData[self.readerHeader[0]]=self.borrowIdEdit.text()
-        self.readerData[self.readerHeader[1]]=self.readerNameEdit.text()
-        self.readerData[self.readerHeader[2]]=self.sexBox.setCurrentText()
-        self.readerData[self.readerHeader[3]]=self.jobEdit.text()
-        self.readerData[self.readerHeader[4]]=self.curNumEdit.text()
-        self.readerData[self.readerHeader[5]]=self.borrowedNumEdit.text()
-        self.readerData[self.readerHeader[6]]=self.deptEdit.text()
-        self.readerData[self.readerHeader[7]]=self.phoneEdit.text()
+        self.readerData[self.readerHeader[0]] = self.borrowIdEdit.text()
+        self.readerData[self.readerHeader[1]] = self.readerNameEdit.text()
+        self.readerData[self.readerHeader[2]] = self.sexBox.currentText()
+        self.readerData[self.readerHeader[3]] = self.jobEdit.text()
+        self.readerData[self.readerHeader[4]] = self.curNumEdit.text()
+        self.readerData[self.readerHeader[5]] = self.borrowedNumEdit.text()
+        self.readerData[self.readerHeader[6]] = self.deptEdit.text()
+        self.readerData[self.readerHeader[7]] = self.phoneEdit.text()
         try:
             sql = """
                 UPDATE readers set borrowid='{0}' ,rname='{1}',sex='{2}',job='{3}',rCurNum={4},
@@ -139,16 +140,22 @@ class ReaderEditWidget(QWidget):
                            self.readerData['job'], self.readerData['rCurNum'], self.readerData['rBorrowedNum'],
                            self.readerData['dept'], self.readerData['phone'])
             print(sql)
-            con=pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
-                                      database="tsglxt")
-            cur=con.cursor()
-            l=cur.execute(sql)
+            con = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
+                                  database="tsglxt")
+            cur = con.cursor()
+            l = cur.execute(sql)
             con.commit()
-            QMessageBox.information(self,'成功','更新成功!',QMessageBox.Ok)
+            choice = QMessageBox.information(self, '成功', '更新成功!', QMessageBox.Ok)
+            if choice==QMessageBox.Ok:
+
+                pass
+            self.close()
+
+
         except Exception as e:
             print(e)
         print("更新或插入操作")
-        
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

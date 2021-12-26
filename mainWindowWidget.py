@@ -439,6 +439,8 @@ class MainWindowWidget(QMainWindow):
                 print(e)
             self.newReaderWidget=readerEditWidget.ReaderEditWidget(self.readerData,False)
             self.newReaderWidget.show()
+            self.queryReaderFun()
+            self.newReaderWidget.readerDataSignal.connect(self.queryReaderFun({}))
             # print(self.newReaderWidget)
         else:
             QMessageBox.critical(self,'错误','请先查询或者新建用户！',QMessageBox.Ok)
