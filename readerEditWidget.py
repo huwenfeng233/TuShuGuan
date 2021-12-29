@@ -8,7 +8,7 @@ from PyQt5.QtGui import *
 
 class ReaderEditWidget(QWidget):
     readerDataSignal = pyqtSignal(dict)
-
+    old_borrowid= ''
     readerData = {}
     readerHeader = ["borrowid", 'rname', 'sex', 'job', 'rCurNum', 'rBorrowedNum', 'dept', 'phone']
 
@@ -30,6 +30,7 @@ class ReaderEditWidget(QWidget):
                 self.borrowedNumEdit.setText(data['rBorrowedNum'])
                 self.readerNameEdit.setText(data['rname'])
                 self.readerData = data
+                self.old_borrowid=data['borrowid']
             except Exception as e:
                 print(e)
         self.confirmBtn.clicked.connect(self.on_confirm_Btn)
@@ -133,14 +134,16 @@ class ReaderEditWidget(QWidget):
         self.readerData[self.readerHeader[7]] = self.phoneEdit.text()
         try:
             if not flag:
-                print("新增读者")
+                print("修改读者")
                 sql = """
                 UPDATE readers set borrowid='{0}' ,rname='{1}',sex='{2}',job='{3}',rCurNum={4},
-                rBorrowedNum={5},dept='{6}',phone='{7}'
+                rBorrowedNum={5},dept='{6}',phone='{7}' WHERE borrowid= '{8}'
                 """.format(self.readerData['borrowid'], self.readerData['rname'], self.readerData['sex'],
                            self.readerData['job'], self.readerData['rCurNum'], self.readerData['rBorrowedNum'],
-                           self.readerData['dept'], self.readerData['phone'])
+                           self.readerData['dept'], self.readerData['phone'], self.old_borrowid)
+
             else:
+                print("添加读者")
                 sql = """
                     INSERT INTO readers(borrowid,rname,sex,job,rCurNum,
                 rBorrowedNum,dept,phone)  values ('{0}' ,'{1}','{2}','{3}',{4},
@@ -154,7 +157,7 @@ class ReaderEditWidget(QWidget):
             cur = con.cursor()
             l = cur.execute(sql)
             con.commit()
-            choice = QMessageBox.information(self, '成功', '更新成功!', QMessageBox.Ok)
+            choice = QMessageBox.information(self, '成功', '操作成功!', QMessageBox.Ok)
             if choice == QMessageBox.Ok:
                 print(self.readerData)
                 self.readerDataSignal.emit(self.readerData)

@@ -12,7 +12,7 @@ class TsLogin(QWidget):
     def __init__(self):
         super(TsLogin, self).__init__()
         self.initUI()
-        self.mainWidget = mainWindowWidget.MainWindowWidget()
+
 
     def initUI(self):
         self.resize(600, 300)
@@ -65,6 +65,8 @@ class TsLogin(QWidget):
 
             print(res)
             if res != 0:
+
+                self.mainWidget = mainWindowWidget.MainWindowWidget(self.userLineEdit.text(),su.fetchall()[0][2])
                 self.mainWidget.show()
                 self.close()
                 # 登录成功

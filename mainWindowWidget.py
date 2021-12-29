@@ -12,6 +12,11 @@ from PyQt5.QtGui import *
 
 
 class MainWindowWidget(QMainWindow):
+    currentUserid = str
+    # 0为查询过后的状态,1为按下还书键后的状态,2为选择了要还的书籍的状态
+    returnStatus=0
+    date = str
+    currentUserStatus = str
     readerData = {}
     readerData["borrowid"] = 0
     readerData['rname'] = 0
@@ -23,15 +28,18 @@ class MainWindowWidget(QMainWindow):
     readerData['phone'] = 0
 
     bookData = {}
-    readerHeader = ["borrowid", 'rname', 'sex', 'job', 'rCurNum', 'rBorrowedNum', 'dept', 'phone' ]
+    readerHeader = ["borrowid", 'rname', 'sex', 'job', 'rCurNum', 'rBorrowedNum', 'dept', 'phone']
     Header = [['账号', '昵称', '性别', '职称', '当前可借数量', '已借数量', '工作部门', '电话'],
-              ['ISBN', '书名', '出版社', '作者', '馆藏数量', '目前数量', '是否可借'],
+              ['ISBN', '书名', '出版社', '作者', '馆藏数量', '可借数量', '是否可借'],
               ['借书证号', '图书编号', '借书日期', '间隔', '还书日期', '罚金']]
-    sendData=pyqtSignal(dict)
+    sendData = pyqtSignal(dict)
 
-    def __init__(self):
+    def __init__(self, userid: str, userStatus: str):
         super(MainWindowWidget, self).__init__()
         self.initUi()
+        self.currentUserid = userid
+        # 0为普通用户，1为管理员
+        self.currentUserStatus = userStatus
 
     def initUi(self):
         self.setWindowTitle("查询&管理")
@@ -213,6 +221,12 @@ class MainWindowWidget(QMainWindow):
         layout2.addLayout(btnLayout)
         queryBtn.clicked.connect(self.queryBooksFun)
 
+        self.newBookBtn.clicked.connect(self.newBookFun)
+        self.editBookBtn.clicked.connect(self.alterBookFun)
+        self.delBookBtn.clicked.connect(self.delBookFun)
+        self.borrowBookBtn.clicked.connect(self.on_borrowBtn_clicked)
+        self.returnBookBtn.clicked.connect(self.on_returnBtn_clicked)
+
     def initThirdTab(self):
         self.queryOutDateGroupBox = QGroupBox()
         self.queryOutDateGroupBox.setTitle("查询结果")
@@ -258,16 +272,14 @@ class MainWindowWidget(QMainWindow):
                            self.readerData['dept'], self.readerData['phone'], self.readerData['account'])
             # print(sql)
 
-
             con = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
             cu = con.cursor()
 
             res = cu.execute(sql)
             print()
-            a=0
+            a = 0
             self.queryResultTable.setColumnCount(len(self.Header[0]))
             for i in self.Header[0]:
-
                 print(i)
                 item = QTableWidgetItem(str(i))
                 self.queryResultTable.setHorizontalHeaderItem(a, item)
@@ -282,7 +294,6 @@ class MainWindowWidget(QMainWindow):
                 print(row, col)
 
                 self.queryResultTable.setRowCount(row)
-
 
                 for i in range(0, row):
                     for j in range(0, col):
@@ -299,6 +310,7 @@ class MainWindowWidget(QMainWindow):
             con.close()
             pass
         # pass
+
     def setBookData(self):
         self.queryBookResultTableWidget.clear()
         self.queryBookResultTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -310,6 +322,7 @@ class MainWindowWidget(QMainWindow):
         self.bookData['storeNum'] = self.saveNumEdit.text()
         self.bookData['bCurNum'] = self.curNumEdit.text()
         self.bookData['available'] = self.isBorrowAbleComBox.currentText()
+
     def queryBooksFun(self, book: map):
         self.setBookData()
         print(self.bookData)
@@ -400,18 +413,18 @@ class MainWindowWidget(QMainWindow):
         curRow = self.queryResultTable.currentRow()
         try:
             for i in range(len(self.readerHeader)):
-                self.readerData[self.readerHeader[i]]=self.queryResultTable.item(curRow,i ).text()
+                self.readerData[self.readerHeader[i]] = self.queryResultTable.item(curRow, i).text()
 
-                print(i,self.queryResultTable.item(curRow, i).text())
+                print(i, self.queryResultTable.item(curRow, i).text())
             # print(self.readerData)
-            sql="""
+            sql = """
                 DELETE FROM readers where borrowid='{}'
                 """.format(self.readerData['borrowid'])
-            con=pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
-            cur=con.cursor()
+            con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
+            cur = con.cursor()
             cur.execute(sql)
             con.commit()
-            QMessageBox().information(self,'成功','删除读者信息成功!',QMessageBox.Ok)
+            QMessageBox().information(self, '成功', '删除读者信息成功!', QMessageBox.Ok)
             print(sql)
         except Exception as e:
             print(e)
@@ -424,36 +437,245 @@ class MainWindowWidget(QMainWindow):
     # 修改读者信息函数
     def on_alterReaderClick(self):
         row = self.queryResultTable.currentRow()
-        if row>=0:
+        if row >= 0:
             try:
                 # self.setBookData()
                 # print(row)
-                self.readerData["borrowid"] =self.queryResultTable.item(row,0).text()
-                self.readerData['rname'] = self.queryResultTable.item(row,1).text()
-                self.readerData['sex'] = self.queryResultTable.item(row,2).text()
-                self.readerData['job'] = self.queryResultTable.item(row,3).text()
-                self.readerData['rCurNum'] = self.queryResultTable.item(row,4).text()
-                self.readerData['rBorrowedNum'] = self.queryResultTable.item(row,5).text()
-                self.readerData['dept'] = self.queryResultTable.item(row,6).text()
-                self.readerData['phone'] = self.queryResultTable.item(row,7).text()
+                self.readerData["borrowid"] = self.queryResultTable.item(row, 0).text()
+                self.readerData['rname'] = self.queryResultTable.item(row, 1).text()
+                self.readerData['sex'] = self.queryResultTable.item(row, 2).text()
+                self.readerData['job'] = self.queryResultTable.item(row, 3).text()
+                self.readerData['rCurNum'] = self.queryResultTable.item(row, 4).text()
+                self.readerData['rBorrowedNum'] = self.queryResultTable.item(row, 5).text()
+                self.readerData['dept'] = self.queryResultTable.item(row, 6).text()
+                self.readerData['phone'] = self.queryResultTable.item(row, 7).text()
                 print(self.readerData)
+                self.newReaderWidget = readerEditWidget.ReaderEditWidget(self.readerData, False)
+                self.newReaderWidget.readerDataSignal.connect(self.queryReaderFun)
+                self.newReaderWidget.show()
             # self.readerData['account'] = self.queryResultTable.item(row,0).text()
             except Exception as e:
                 print(e)
-            self.newReaderWidget=readerEditWidget.ReaderEditWidget(self.readerData,False)
-            self.newReaderWidget.readerDataSignal.connect(self.queryReaderFun)
-            self.newReaderWidget.show()
+
             # self.queryReaderFun()
 
         else:
-            QMessageBox.critical(self,'错误','请先查询或者新建用户！',QMessageBox.Ok)
+            QMessageBox.critical(self, '错误', '请先查询或者新建用户！', QMessageBox.Ok)
         pass
 
     def newBookFun(self):
+        self.bookEditWidget = bookEditWidget.BookEditWidget()
+        self.bookEditWidget.show()
+
+    def delBookFun(self):
+        if self.queryBookResultTableWidget.currentRow() == -1:
+            QMessageBox.critical(self, '错误', '请先选择一个书籍', QMessageBox.Ok)
+            return
+        isbn = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(), 0).text()
+
+        print(isbn)
+        sql = """
+            delete from books where isbn='{}'
+            """.format(isbn)
+        try:
+            conn = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
+                                   database="tsglxt")
+            cur = conn.cursor()
+            l = cur.execute(sql)
+            choice = QMessageBox.information(self, '确认', '确定要删除吗?', QMessageBox.Ok | QMessageBox.Cancel)
+            if choice == QMessageBox.Ok:
+                conn.commit()
+                print("删除书籍信息")
+                self.queryBooksFun(self.bookData)
+            else:
+                pass
+        except  Exception as e:
+            print(e)
+        finally:
+            cur.close()
+            conn.close()
+
+        pass
+
+    def alterBookFun(self):
+        if self.queryBookResultTableWidget.currentRow() == -1:
+            QMessageBox.critical(self, '错误', '请先选择一个书籍', QMessageBox.Ok)
+            return
+        isbn = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(), 0).text()
+        self.bookData['isbn'] = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
+                                                                     0).text()
+        self.bookData['bname'] = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
+                                                                      1).text()
+        self.bookData['pub'] = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
+                                                                    2).text()
+        self.bookData['author'] = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
+                                                                       3).text()
+        self.bookData['storeNum'] = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
+                                                                         4).text()
+        self.bookData['bCurNum'] = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
+                                                                        5).text()
+        self.bookData['availabel'] = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
+                                                                          6).text()
+        print(self.bookData)
+        sql = """
+            select * from books where isbn='{}'
+            """.format(isbn)
+        try:
+
+            self.alterBookWidget = bookEditWidget.BookEditWidget(self.bookData, False)
+            self.alterBookWidget.show()
+
+        except  Exception as e:
+            print(e)
+
+    def on_borrowBtn_clicked(self):
+        print("借书按钮被按下")
+        if self.returnStatus==1:
+            QMessageBox.warning(self,'错误','请先查询书籍!',QMessageBox.Ok)
+            self.returnStatus=0
+            return
+
+        query_sql = """
+            SELECT * FROM rb where  borrowid='{}'
+            """.format(self.currentUserid)
+        row = self.queryBookResultTableWidget.currentRow()
+        if row == -1:
+            QMessageBox.critical(self, '错误', '请先选择要借的书籍！', QMessageBox.Ok)
+            return
+        curNum = self.queryBookResultTableWidget.item(row, 5).text()
+        print(curNum)
+        try:
+            conn = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
+                                   database="tsglxt")
+            cur = conn.cursor()
+            length = cur.execute(query_sql)
+            if length == 5:
+                QMessageBox.warning(self, '错误', '用户借书数量已经到达最大上限，请先还书后再进行借书操作', QMessageBox.Ok)
+            else:
+                self.dateBtn = QPushButton("确定")
+                self.dateBtn.clicked.connect(self.borrowBookFun)
+                self.dateWidget = QWidget()
+                self.dateWidget.resize(400, 200)
+
+                self.dateWidget.setWindowFlags(Qt.WindowCloseButtonHint)
+                self.dateWidget.setWindowTitle("选择借书日期")
+                self.dateWidget.setWindowModified(True)
+                self.calendar = QDateEdit()
+                self.calendar.setCalendarPopup(True)
+                self.calendar.setDate(QDate.currentDate())
+                self.layout = QVBoxLayout()
+                self.layout.addWidget(self.calendar)
+                self.dateWidget.setLayout(self.layout)
+                self.dateWidget.show()
+                self.layout.addWidget(self.dateBtn)
+                self.calendar.show()
+
+                # print(self.date)
+            pass
+        except Exception as e:
+            print(e)
+        finally:
+            cur.close()
+            conn.close()
+            pass
+
+    def borrowBookFun(self):
+        self.date = self.calendar.text()
+        print(self.date)
+        self.dateWidget.close()
+        try:
+
+            sql = """
+                    insert into rb(borrowid,isbn,duration,startDate) values ('{0}','{1}',{2},str_to_date('{3}-{4}-{5}', '%Y-%m-%d'))
+                    """.format(self.currentUserid,
+                               self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
+                                                                    0).text(),30, self.date.split('/')[0],
+                               self.date.split('/')[1], self.date.split('/')[2])
+            print(sql)
+            conn = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
+                                   database="tsglxt")
+            cur = conn.cursor()
+
+            length = cur.execute(sql)
+            conn.commit()
+        except Exception as e:
+            print(e)
+        finally:
+            cur.close()
+            conn.close()
+
+    def on_returnBtn_clicked(self):
+        print("还书按钮被按下")
+        if self.returnStatus==0:
+            self.queryBookResultTableWidget.clear()
+            self.queryBookResultTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            self.queryBookResultTableWidget.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            sql = """
+                        SELECT * FROM rb WHERE borrowid='{}';
+                        """.format(self.currentUserid)
+
+            try:
+                con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
+                cur = con.cursor()
+                res = cur.execute(sql)
+                data = cur.fetchall()
+                print(data)
+                # cur.execute('')
+                print()
+                if res > 0:
+                    row = cur.rowcount
+                    col = len(data[0])
+                    print(col)
+                    self.queryBookResultTableWidget.setColumnCount(col)
+                    self.queryBookResultTableWidget.setRowCount(row)
+                    a = 0
+                    for i in self.Header[2]:
+                        # print(i)
+                        self.queryBookResultTableWidget.setHorizontalHeaderItem(a, QTableWidgetItem(str(i)))
+                        a += 1
+                    for i in range(0, row):
+                        for j in range(0, col):
+                            self.queryBookResultTableWidget.setItem(i, j, QTableWidgetItem(str(data[i][j])))
+                self.returnStatus=1
+            except Exception as e:
+                print(e)
+            finally:
+                cur.close()
+                con.close()
+        elif self.returnStatus==1:
+            print(self.queryBookResultTableWidget.currentRow())
+            if self.queryBookResultTableWidget.currentRow()==-1:
+                QMessageBox.warning(self,'错误','请先选择要还的书籍!',QMessageBox.Ok)
+                return
+            else:
+                borrowid=self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),0).text()
+                isbn=self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),1).text()
+                sql="""
+                    DELETE FROM rb WHERE borrowid='{}' and isbn='{}'
+                    """.format(borrowid,isbn)
+
+                try:
+                    con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456",
+                                          database="tsglxt")
+                    cur = con.cursor()
+                    res = cur.execute(sql)
+                    if res==1:
+                        QMessageBox.information(self,'完成','删除成功!',QMessageBox.Ok)
+                    con.commit()
+                except  Exception as e:
+                    print(e)
+                finally:
+                    cur.close()
+                    con.close()
+                    self.returnStatus=0
+
+
+
+            pass
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main = MainWindowWidget()
+    main = MainWindowWidget('123', 1)
     main.show()
     sys.exit(app.exec_())

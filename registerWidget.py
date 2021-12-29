@@ -28,7 +28,9 @@ class RegistryWidget(QWidget):
         self.statusLabel=QLabel("身份：")
         self.statusLabel.setAlignment(Qt.AlignRight)
         self.statuSelect=QComboBox()
+        # 0为普通用户，1为管理员账户
         self.statuSelect.addItems(['用户','管理员'])
+
         self.registerBtn=QPushButton("注册")
         self.registerBtn.clicked.connect(self.on_register_click)
         self.userLabel.setBuddy(self.userLineEdit)
@@ -39,6 +41,7 @@ class RegistryWidget(QWidget):
         layout.addRow(self.registerBtn)
         self.setLayout(layout)
     def on_register_click(self):
+
         self.registerData['account']=self.userLineEdit.text()
         self.registerData['passward']= self.passwdLineEdit.text()
         self.registerData['status']=self.statuSelect.currentIndex()
