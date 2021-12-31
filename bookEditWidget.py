@@ -104,8 +104,8 @@ class BookEditWidget(QWidget):
             # 新建书籍函数
             print("新建书籍")
             self.setBookData()
-            if len(self.isbnEdit.text())==0:
-                QMessageBox.critical(self,'错误',"ISBN号不能为空！",QMessageBox.Ok)
+            if len(self.isbnEdit.text()) == 0:
+                QMessageBox.critical(self, '错误', "ISBN号不能为空！", QMessageBox.Ok)
                 return
             sql = """
                 insert into books(isbn,bname,pub,author,storeNum,bCurNum,available) 
@@ -137,8 +137,7 @@ class BookEditWidget(QWidget):
             querySql = """
                                 select * from books where isbn='{}'
                                 """.format(self.bookData['isbn'])
-            conn = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
-                                   database="tsglxt")
+            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             cur = conn.cursor()
             l = cur.execute(querySql)
             print(l)

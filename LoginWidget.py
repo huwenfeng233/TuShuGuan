@@ -13,7 +13,6 @@ class TsLogin(QWidget):
         super(TsLogin, self).__init__()
         self.initUI()
 
-
     def initUI(self):
         self.resize(600, 300)
         self.setWindowTitle("登陆界面")
@@ -55,10 +54,10 @@ class TsLogin(QWidget):
         # self.loginBtn.clicked.connect(self.on_login)
 
     def on_login(self):
-        con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
+        con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
         su = con.cursor()
         sql = "SELECT * FROM users where id='{}' and passward='{}'".format(self.userLineEdit.text(),
-                                                                                self.passwdLineEdit.text())
+                                                                           self.passwdLineEdit.text())
         print(sql)
         try:
             res = su.execute(sql)
@@ -66,7 +65,7 @@ class TsLogin(QWidget):
             print(res)
             if res != 0:
 
-                self.mainWidget = mainWindowWidget.MainWindowWidget(self.userLineEdit.text(),su.fetchall()[0][2])
+                self.mainWidget = mainWindowWidget.MainWindowWidget(self.userLineEdit.text(), su.fetchall()[0][2])
                 self.mainWidget.show()
                 self.close()
                 # 登录成功
@@ -76,7 +75,6 @@ class TsLogin(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "错误！", e, QMessageBox.Ok)
         finally:
-
 
             print("登录")
         pass
@@ -92,7 +90,7 @@ class TsLogin(QWidget):
     def registerfun(self, data: dict):
 
         try:
-            con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
+            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             su = con.cursor()
             sql = "INSERT INTO users (passward,id,status)values ('{0}','{1}','{2}')".format(data['passward'],
                                                                                             data['account'],

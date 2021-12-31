@@ -13,8 +13,9 @@ from PyQt5.QtGui import *
 
 class MainWindowWidget(QMainWindow):
     currentUserid = str
+    mysql={"host":'172.28.22.15', 'user':"root", "port":53306, "password":"123456", "database":"tsglxt"}
     # 0为查询过后的状态,1为按下还书键后的状态,2为选择了要还的书籍的状态
-    returnStatus=0
+    returnStatus = 0
     date = str
     currentUserStatus = str
     readerData = {}
@@ -272,7 +273,7 @@ class MainWindowWidget(QMainWindow):
                            self.readerData['dept'], self.readerData['phone'], self.readerData['account'])
             # print(sql)
 
-            con = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
+            con = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             cu = con.cursor()
 
             res = cu.execute(sql)
@@ -337,7 +338,7 @@ class MainWindowWidget(QMainWindow):
                        self.bookData['available'])
         print(sql)
         try:
-            con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
+            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             cur = con.cursor()
             res = cur.execute(sql)
 
@@ -374,7 +375,7 @@ class MainWindowWidget(QMainWindow):
             SELECT * FROM rb WHERE curdate()-rb.startDate>rb.duration;
             """
         try:
-            con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
+            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             cur = con.cursor()
             res = cur.execute(sql)
             data = cur.fetchall()
@@ -420,7 +421,7 @@ class MainWindowWidget(QMainWindow):
             sql = """
                 DELETE FROM readers where borrowid='{}'
                 """.format(self.readerData['borrowid'])
-            con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
+            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             cur = con.cursor()
             cur.execute(sql)
             con.commit()
@@ -478,8 +479,7 @@ class MainWindowWidget(QMainWindow):
             delete from books where isbn='{}'
             """.format(isbn)
         try:
-            conn = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
-                                   database="tsglxt")
+            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             cur = conn.cursor()
             l = cur.execute(sql)
             choice = QMessageBox.information(self, '确认', '确定要删除吗?', QMessageBox.Ok | QMessageBox.Cancel)
@@ -530,9 +530,9 @@ class MainWindowWidget(QMainWindow):
 
     def on_borrowBtn_clicked(self):
         print("借书按钮被按下")
-        if self.returnStatus==1:
-            QMessageBox.warning(self,'错误','请先查询书籍!',QMessageBox.Ok)
-            self.returnStatus=0
+        if self.returnStatus == 1:
+            QMessageBox.warning(self, '错误', '请先查询书籍!', QMessageBox.Ok)
+            self.returnStatus = 0
             return
 
         query_sql = """
@@ -545,8 +545,7 @@ class MainWindowWidget(QMainWindow):
         curNum = self.queryBookResultTableWidget.item(row, 5).text()
         print(curNum)
         try:
-            conn = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
-                                   database="tsglxt")
+            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             cur = conn.cursor()
             length = cur.execute(query_sql)
             if length == 5:
@@ -589,11 +588,10 @@ class MainWindowWidget(QMainWindow):
                     insert into rb(borrowid,isbn,duration,startDate) values ('{0}','{1}',{2},str_to_date('{3}-{4}-{5}', '%Y-%m-%d'))
                     """.format(self.currentUserid,
                                self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
-                                                                    0).text(),30, self.date.split('/')[0],
+                                                                    0).text(), 30, self.date.split('/')[0],
                                self.date.split('/')[1], self.date.split('/')[2])
             print(sql)
-            conn = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
-                                   database="tsglxt")
+            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             cur = conn.cursor()
 
             length = cur.execute(sql)
@@ -606,7 +604,7 @@ class MainWindowWidget(QMainWindow):
 
     def on_returnBtn_clicked(self):
         print("还书按钮被按下")
-        if self.returnStatus==0:
+        if self.returnStatus == 0:
             self.queryBookResultTableWidget.clear()
             self.queryBookResultTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
             self.queryBookResultTableWidget.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -615,7 +613,7 @@ class MainWindowWidget(QMainWindow):
                         """.format(self.currentUserid)
 
             try:
-                con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456", database="tsglxt")
+                con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
                 cur = con.cursor()
                 res = cur.execute(sql)
                 data = cur.fetchall()
@@ -636,40 +634,37 @@ class MainWindowWidget(QMainWindow):
                     for i in range(0, row):
                         for j in range(0, col):
                             self.queryBookResultTableWidget.setItem(i, j, QTableWidgetItem(str(data[i][j])))
-                self.returnStatus=1
+                self.returnStatus = 1
             except Exception as e:
                 print(e)
             finally:
                 cur.close()
                 con.close()
-        elif self.returnStatus==1:
+        elif self.returnStatus == 1:
             print(self.queryBookResultTableWidget.currentRow())
-            if self.queryBookResultTableWidget.currentRow()==-1:
-                QMessageBox.warning(self,'错误','请先选择要还的书籍!',QMessageBox.Ok)
+            if self.queryBookResultTableWidget.currentRow() == -1:
+                QMessageBox.warning(self, '错误', '请先选择要还的书籍!', QMessageBox.Ok)
                 return
             else:
-                borrowid=self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),0).text()
-                isbn=self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),1).text()
-                sql="""
+                borrowid = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(), 0).text()
+                isbn = self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(), 1).text()
+                sql = """
                     DELETE FROM rb WHERE borrowid='{}' and isbn='{}'
-                    """.format(borrowid,isbn)
+                    """.format(borrowid, isbn)
 
                 try:
-                    con = pymysql.connect(host='172.28.22.15', user="root", port=53306, password="123456",
-                                          database="tsglxt")
+                    con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
                     cur = con.cursor()
                     res = cur.execute(sql)
-                    if res==1:
-                        QMessageBox.information(self,'完成','删除成功!',QMessageBox.Ok)
+                    if res == 1:
+                        QMessageBox.information(self, '完成', '删除成功!', QMessageBox.Ok)
                     con.commit()
                 except  Exception as e:
                     print(e)
                 finally:
                     cur.close()
                     con.close()
-                    self.returnStatus=0
-
-
+                    self.returnStatus = 0
 
             pass
 

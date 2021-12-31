@@ -8,7 +8,7 @@ from PyQt5.QtGui import *
 
 class ReaderEditWidget(QWidget):
     readerDataSignal = pyqtSignal(dict)
-    old_borrowid= ''
+    old_borrowid = ''
     readerData = {}
     readerHeader = ["borrowid", 'rname', 'sex', 'job', 'rCurNum', 'rBorrowedNum', 'dept', 'phone']
 
@@ -30,7 +30,7 @@ class ReaderEditWidget(QWidget):
                 self.borrowedNumEdit.setText(data['rBorrowedNum'])
                 self.readerNameEdit.setText(data['rname'])
                 self.readerData = data
-                self.old_borrowid=data['borrowid']
+                self.old_borrowid = data['borrowid']
             except Exception as e:
                 print(e)
         self.confirmBtn.clicked.connect(self.on_confirm_Btn)
@@ -104,8 +104,7 @@ class ReaderEditWidget(QWidget):
                     SELECT * FROM readers WHERE borrowid='{}';
                     """.format(self.borrowIdEdit.text())
                 print(sql)
-                con = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
-                                      database="tsglxt")
+                con = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
                 cur = con.cursor()
                 l = cur.execute(sql)
                 # 如果用户已经存在，则发出提示
@@ -152,8 +151,7 @@ class ReaderEditWidget(QWidget):
                                self.readerData['job'], self.readerData['rCurNum'], self.readerData['rBorrowedNum'],
                                self.readerData['dept'], self.readerData['phone'])
             print(sql)
-            con = pymysql.Connect(host='172.28.22.15', user="root", port=53306, password="123456",
-                                  database="tsglxt")
+            con = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             cur = con.cursor()
             l = cur.execute(sql)
             con.commit()

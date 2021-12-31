@@ -1,7 +1,7 @@
-
 import pymysql
 import random
 import randomName
+
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -10,8 +10,8 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    con = pymysql.connect(host='172.28.22.15',user="root",password= '123456',database='tsglxt', port=53306)
-    su=con.cursor()
+    con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+    su = con.cursor()
     # for i in range(100):
     #     s = random.sample('zyxwvutsrqponmlkjihgfedcba',5)
     #     passwd=random.sample('zyxwvutsrqponmlkjihgfedcba',4)
@@ -26,18 +26,14 @@ if __name__ == '__main__':
     #         con.rollback()
     # su.execute("""INSERT INTO users values ('王','军','明')""")
     # con.commit()
-    sql='SELECT * FROM users'
-    res=su.execute(sql)
-    print(su.fetchall(),sep=' ')
+    sql = 'SELECT * FROM users'
+    res = su.execute(sql)
+    print(su.fetchall(), sep=' ')
 
     # for item in range(res):
     #     print (su.fetchone())
     con.close()
     su.close()
-
-
-
-
 
     # print_hi('PyCharm')
 
