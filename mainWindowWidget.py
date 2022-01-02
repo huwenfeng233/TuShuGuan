@@ -37,10 +37,11 @@ class MainWindowWidget(QMainWindow):
 
     def __init__(self, userid: str, userStatus: str):
         super(MainWindowWidget, self).__init__()
-        self.initUi()
+
         self.currentUserid = userid
         # 0为普通用户，1为管理员
         self.currentUserStatus = userStatus
+        self.initUi()
 
     def initUi(self):
         self.setWindowTitle("查询&管理")
@@ -59,7 +60,8 @@ class MainWindowWidget(QMainWindow):
         self.tabMainWidget.addTab(self.tabWidget1, "读者信息")
         self.tabMainWidget.addTab(self.tabWidget2, "图书信息")
         self.tabMainWidget.addTab(self.tabWidget3, "逾期图书信息")
-        self.initFirstTab()
+        if self.currentUserStatus==1:
+            self.initFirstTab()
         self.initSecondTab()
         self.initThirdTab()
 
@@ -280,11 +282,8 @@ class MainWindowWidget(QMainWindow):
             print()
             a = 0
             self.queryResultTable.setColumnCount(len(self.Header[0]))
-            for i in self.Header[0]:
-                print(i)
-                item = QTableWidgetItem(str(i))
-                self.queryResultTable.setHorizontalHeaderItem(a, item)
-                a += 1
+
+            self.queryResultTable.setHorizontalHeaderLabels(self.Header[0])
             if res > 0:
                 colResult = cu.description
                 res_data = cu.fetchall()
@@ -352,11 +351,12 @@ class MainWindowWidget(QMainWindow):
                 self.queryBookResultTableWidget.setRowCount(row)
                 print(row, col)
                 print(data)
-                a = 0
-                for i in self.Header[1]:
-                    # print(i[0])
-                    self.queryBookResultTableWidget.setHorizontalHeaderItem(a, QTableWidgetItem(str(i)))
-                    a += 1
+                self.queryBookResultTableWidget.setHorizontalHeaderLabels(self.Header[1])
+                # a = 0
+                # for i in self.Header[1]:
+                #     # print(i[0])
+                #     self.queryBookResultTableWidget.setHorizontalHeaderItem(a, QTableWidgetItem(str(i)))
+                #     a += 1
                 for i in range(0, row):
                     for j in range(0, col):
                         self.queryBookResultTableWidget.setItem(i, j, QTableWidgetItem(str(data[i][j])))
@@ -371,6 +371,7 @@ class MainWindowWidget(QMainWindow):
         self.queryOutDateTabel.clear()
         self.queryOutDateTabel.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.queryOutDateTabel.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
         sql = """
             SELECT * FROM rb WHERE curdate()-rb.startDate>rb.duration;
             """
@@ -388,11 +389,7 @@ class MainWindowWidget(QMainWindow):
                 print(col)
                 self.queryOutDateTabel.setColumnCount(col)
                 self.queryOutDateTabel.setRowCount(row)
-                a = 0
-                for i in self.Header[2]:
-                    # print(i)
-                    self.queryOutDateTabel.setHorizontalHeaderItem(a, QTableWidgetItem(str(i)))
-                    a += 1
+                self.queryOutDateTabel.setHorizontalHeaderLabels(self.Header[2])
                 for i in range(0, row):
                     for j in range(0, col):
                         self.queryOutDateTabel.setItem(i, j, QTableWidgetItem(str(data[i][j])))
