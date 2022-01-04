@@ -5,7 +5,7 @@
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://172.28.22.15:53306/tsglxt</jdbc-url>
+      <jdbc-url>jdbc:mysql://47.93.21.11:3306/tsglxt</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
     <data-source source="LOCAL" name="tsglxt@172.28.22.15" uuid="12e00203-9238-4d37-9d34-552791c31b66">

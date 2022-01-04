@@ -23,9 +23,15 @@ class RegistryWidget(QWidget):
         self.userLabel = QLabel("账号：")
         self.userLabel.setAlignment(Qt.AlignRight)
 
+
         self.passwdLabel = QLabel("密码：")
         self.passwdLabel.setAlignment(Qt.AlignRight)
         self.userLineEdit = QLineEdit(self)
+        re=QRegExp()
+        re.setPattern('[0-9]{3,9}')
+        validator=QRegExpValidator(re)
+        # self.userLineEdit.setInputMask('9')
+        self.userLineEdit.setValidator(validator)
         self.passwdLineEdit = QLineEdit(self)
         self.statusLabel = QLabel("身份：")
         self.statusLabel.setAlignment(Qt.AlignRight)

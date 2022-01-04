@@ -88,11 +88,13 @@ class TsLogin(QWidget):
 
     # 执行注册功能的函数
     def registerfun(self, data: dict):
-
+        querySql="""
+                SELECT * FROM users WHERE id={}
+                """.format(data['account'])
         try:
             con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
             su = con.cursor()
-            sql = "INSERT INTO users (passward,id,status)values ('{0}','{1}','{2}')".format(data['passward'],
+            sql = "INSERT INTO users (passward,id,status)values ('{0}',{1},'{2}')".format(data['passward'],
                                                                                             data['account'],
                                                                                             data['status'])
             su.execute(sql)
@@ -100,7 +102,7 @@ class TsLogin(QWidget):
             print(e)
         finally:
             con.commit()
-            QMessageBox.information(self, "成功", '用户添加成功', QMessageBox.Ok)
+            QMessageBox.information(self, "成功", '注册成功', QMessageBox.Ok)
             su.close()
             con.close()
 

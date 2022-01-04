@@ -13,10 +13,11 @@ from PyQt5.QtGui import *
 
 class MainWindowWidget(QMainWindow):
     currentUserid = str
-    mysql={"host":'172.28.22.15', 'user':"root", "port":53306, "password":"123456", "database":"tsglxt"}
+    mysql = {"host": '172.28.22.15', 'user': "root", "port": 53306, "password": "123456", "database": "tsglxt"}
     # 0为查询过后的状态,1为按下还书键后的状态,2为选择了要还的书籍的状态
     returnStatus = 0
     date = str
+    maxBorrowDay = 30
     currentUserStatus = str
     readerData = {}
     readerData["borrowid"] = 0
@@ -57,11 +58,12 @@ class MainWindowWidget(QMainWindow):
         pass
 
     def initTabWidget(self):
+
         self.tabMainWidget.addTab(self.tabWidget1, "读者信息")
         self.tabMainWidget.addTab(self.tabWidget2, "图书信息")
         self.tabMainWidget.addTab(self.tabWidget3, "逾期图书信息")
-        if self.currentUserStatus==1:
-            self.initFirstTab()
+
+        self.initFirstTab()
         self.initSecondTab()
         self.initThirdTab()
 
@@ -132,10 +134,12 @@ class MainWindowWidget(QMainWindow):
         self.alterReaderBtn = QPushButton("编辑")
 
         btnLayout = QHBoxLayout()
+
         btnLayout.addWidget(self.newReaderBtn, alignment=Qt.AlignLeft)
         btnLayout.addWidget(self.delReaderBtn, alignment=Qt.AlignCenter)
         btnLayout.addWidget(self.alterReaderBtn, alignment=Qt.AlignRight)
-        layout1.addLayout(btnLayout)
+        if self.currentUserStatus == 1:
+            layout1.addLayout(btnLayout)
         self.queryReaderBtn.clicked.connect(self.queryReaderFun)
         self.newReaderBtn.clicked.connect(self.on_newReaderClick)
         self.delReaderBtn.clicked.connect(self.on_delReaderClick)
@@ -208,11 +212,16 @@ class MainWindowWidget(QMainWindow):
         self.returnBookBtn = QPushButton("还书")
         self.editBookBtn = QPushButton("编辑")
         btnLayout = QHBoxLayout()
-        btnLayout.addWidget(self.newBookBtn)
-        btnLayout.addWidget(self.borrowBookBtn)
-        btnLayout.addWidget(self.delBookBtn)
-        btnLayout.addWidget(self.returnBookBtn)
-        btnLayout.addWidget(self.editBookBtn)
+
+        if self.currentUserStatus == 1:
+            btnLayout.addWidget(self.newBookBtn)
+
+            btnLayout.addWidget(self.delBookBtn)
+
+            btnLayout.addWidget(self.editBookBtn)
+        else:
+            btnLayout.addWidget(self.borrowBookBtn)
+            btnLayout.addWidget(self.returnBookBtn)
 
         self.queryBookResultGroupBox = QGroupBox()
         self.queryBookResultGroupBox.setTitle("查询结果")
@@ -275,7 +284,8 @@ class MainWindowWidget(QMainWindow):
                            self.readerData['dept'], self.readerData['phone'], self.readerData['account'])
             # print(sql)
 
-            con = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+            con = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314",
+                                  database="tsglxt")
             cu = con.cursor()
 
             res = cu.execute(sql)
@@ -337,7 +347,8 @@ class MainWindowWidget(QMainWindow):
                        self.bookData['available'])
         print(sql)
         try:
-            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314",
+                                  database="tsglxt")
             cur = con.cursor()
             res = cur.execute(sql)
 
@@ -371,12 +382,17 @@ class MainWindowWidget(QMainWindow):
         self.queryOutDateTabel.clear()
         self.queryOutDateTabel.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.queryOutDateTabel.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
-        sql = """
-            SELECT * FROM rb WHERE curdate()-rb.startDate>rb.duration;
-            """
+        if self.currentUserStatus == 1:
+            sql = """
+            SELECT borrowid, isbn, startDate, DATEDIFF( curdate(),rb.startDate), returnDate, fine FROM rb WHERE curdate()-rb.startDate>{};
+            """.format(self.maxBorrowDay)
+        else:
+            sql = """
+                SELECT borrowid, isbn, startDate, DATEDIFF( curdate(),rb.startDate), returnDate, fine FROM rb WHERE curdate()-rb.startDate>{} and borrowid='{}';
+                """.format(self.maxBorrowDay, self.currentUserid)
         try:
-            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314",
+                                  database="tsglxt")
             cur = con.cursor()
             res = cur.execute(sql)
             data = cur.fetchall()
@@ -418,7 +434,8 @@ class MainWindowWidget(QMainWindow):
             sql = """
                 DELETE FROM readers where borrowid='{}'
                 """.format(self.readerData['borrowid'])
-            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+            con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314",
+                                  database="tsglxt")
             cur = con.cursor()
             cur.execute(sql)
             con.commit()
@@ -476,7 +493,8 @@ class MainWindowWidget(QMainWindow):
             delete from books where isbn='{}'
             """.format(isbn)
         try:
-            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314",
+                                   database="tsglxt")
             cur = conn.cursor()
             l = cur.execute(sql)
             choice = QMessageBox.information(self, '确认', '确定要删除吗?', QMessageBox.Ok | QMessageBox.Cancel)
@@ -539,10 +557,14 @@ class MainWindowWidget(QMainWindow):
         if row == -1:
             QMessageBox.critical(self, '错误', '请先选择要借的书籍！', QMessageBox.Ok)
             return
-        curNum = self.queryBookResultTableWidget.item(row, 5).text()
-        print(curNum)
+        curNum = int(self.queryBookResultTableWidget.item(row, 5).text())
+        print("剩余数量：", curNum)
+        if curNum == 0:
+            QMessageBox.critical(self, '错误', '书籍已经全部借出，操作失败！', QMessageBox.Ok)
+            return
         try:
-            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314",
+                                   database="tsglxt")
             cur = conn.cursor()
             length = cur.execute(query_sql)
             if length == 5:
@@ -588,10 +610,25 @@ class MainWindowWidget(QMainWindow):
                                                                     0).text(), 30, self.date.split('/')[0],
                                self.date.split('/')[1], self.date.split('/')[2])
             print(sql)
-            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+            conn = pymysql.Connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314",
+                                   database="tsglxt")
             cur = conn.cursor()
 
             length = cur.execute(sql)
+            sql = """
+                UPDATE books SET bCurNum=bCurNum-1 where  isbn='{}'
+                """.format(self.queryBookResultTableWidget.item(self.queryBookResultTableWidget.currentRow(),
+                                                                0).text())
+            cur.execute(sql)
+            sql = """
+                UPDATE readers set rBorrowedNum=rBorrowedNum+1 where  borrowid='{}'
+                """.format(self.currentUserid)
+
+            cur.execute(sql)
+            sql = """
+                UPDATE readers set rCurNum=rCurNum-1 where borrowid='{}'
+                """.format(self.currentUserid)
+            cur.execute(sql)
             conn.commit()
         except Exception as e:
             print(e)
@@ -606,11 +643,12 @@ class MainWindowWidget(QMainWindow):
             self.queryBookResultTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
             self.queryBookResultTableWidget.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
             sql = """
-                        SELECT * FROM rb WHERE borrowid='{}';
+                        SELECT borrowid, isbn, startDate, DATEDIFF( curdate(),rb.startDate) FROM rb WHERE borrowid='{}';
                         """.format(self.currentUserid)
 
             try:
-                con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+                con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314",
+                                      database="tsglxt")
                 cur = con.cursor()
                 res = cur.execute(sql)
                 data = cur.fetchall()
@@ -650,11 +688,26 @@ class MainWindowWidget(QMainWindow):
                     """.format(borrowid, isbn)
 
                 try:
-                    con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314", database="tsglxt")
+                    con = pymysql.connect(host='47.93.21.11', user="root", port=3306, password="lovemiss1314",
+                                          database="tsglxt")
                     cur = con.cursor()
                     res = cur.execute(sql)
                     if res == 1:
-                        QMessageBox.information(self, '完成', '删除成功!', QMessageBox.Ok)
+                        QMessageBox.information(self, '完成', '还书成功!', QMessageBox.Ok)
+                        sql = """
+                                        UPDATE books SET bCurNum=bCurNum+1 where  isbn='{}'
+                                        """.format(
+                            isbn)
+                        cur.execute(sql)
+                        sql = """
+                            update readers set rBorrowedNum=rBorrowedNum+1 where  borrowid='{}'
+                            """.format(self.currentUserid)
+
+                        cur.execute(sql)
+                        sql = """
+                                update readers set rCurNum=rCurNum-1 where  borrowid='{}'
+                                                   """.format(self.currentUserid)
+                        cur.execute(sql)
                     con.commit()
                 except  Exception as e:
                     print(e)
@@ -668,6 +721,6 @@ class MainWindowWidget(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main = MainWindowWidget('123', 1)
+    main = MainWindowWidget('123', 0)
     main.show()
     sys.exit(app.exec_())
